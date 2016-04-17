@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework;
 
 namespace OrgPlay.SampleController
 {
@@ -7,19 +8,28 @@ namespace OrgPlay.SampleController
         : Microsoft.Xna.Framework.GameComponent
     {
         private readonly DynamicSoundEffectInstance _dsi;
+        private readonly SampleProviderConfiguration _config;
+        private readonly ISourceSampleProvider _master;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="OrgPlay.SynthContext"/> class.
-        /// </summary>
-        /// <param name="sourceSampleProvider">The root source sample provider to .</param>
-        public SampleControllerComponent(ISourceSampleProvider sourceSampleProvider, SynthConfiguration config)
+        public SampleControllerComponent(Game game, ISourceSampleProvider sourceSampleProvider, SampleProviderConfiguration config)
+            : base(game)
         {
+            _config = config;
+            _master = sourceSampleProvider;
+
             _dsi = new DynamicSoundEffectInstance (config.SampleRate, config.Channels);
             _dsi.Play();
+
         }
 
         public override void Update(Microsoft.Xna.Framework.GameTime gameTime)
         {
+            while (_dsi.PendingBufferCount < 3)
+            {
+                var buf = _master.RequestBuffer(_config.BufferLengthSamples);
+                _dsi.SubmitFloatBufferEXT(buf);
+            }
+
             base.Update(gameTime);
         }
 

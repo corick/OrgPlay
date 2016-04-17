@@ -4,36 +4,42 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.IO;
 
+// TODO: Clean this up and stuff.
+// I hate MonoDevelop.
 
 namespace OrgPlay.Organya
 {
     public class OrganyaSong
     {
-        public readonly ImmutableList<Track> Tracks;
+        public readonly ImmutableList<OrganyaInstrument> Tracks;
+        public readonly int StepLengthMsec;
+        public readonly int StepsPerBeat;
+        public readonly int BeatsPerBar;
+        public readonly int LoopStartPositionSteps;
+        public readonly int LoopEndPositionSteps;
 
-        public readonly int ClickLengthMsec;
-        public readonly int ClicksPerBeat;
-        public readonly int LoopStartPositionClicks;
-        public readonly int LoopEndPositionClicks;
-
-        public OrganyaSong(int clickLengthMsec, int clicksPerBeat, int loopStart, int loopEnd, IEnumerable<Track> tracks)
+        public OrganyaSong(int clickLengthMsec, int clicksPerBeat, int beatsPerBar, int loopStart, int loopEnd, IEnumerable<OrganyaInstrument> tracks)
         {
             Tracks = tracks.ToImmutableList();
 
-            if (Tracks.Count != 6)
+            if (Tracks.Count != 16)
             {
                 throw new ArgumentException("Received an unexpected track count.");
             }
 
-            this.ClickLengthMsec = clickLengthMsec;
-            this.ClicksPerBeat = clicksPerBeat;
-            this.LoopStartPositionClicks = loopStart;
-            this.LoopEndPositionClicks = loopEnd;
+            this.StepLengthMsec = clickLengthMsec;
+            this.StepsPerBeat = clicksPerBeat;
+            this.BeatsPerBar = beatsPerBar;
+            this.LoopStartPositionSteps = loopStart;
+            this.LoopEndPositionSteps = loopEnd;
         }
 
         public static OrganyaSong FromFile(string filePath)
         {
-            return OrganyaSong.FromStream(filePath);
+            using(var fileStream = File.OpenRead(filePath))
+            {
+                return OrganyaSong.FromStream(fileStream);
+            }
         }
 
         public static OrganyaSong FromStream(Stream inputStream) 
@@ -71,7 +77,6 @@ namespace OrgPlay.Organya
             using(BinaryReader reader = new BinaryReader(inputStream, System.Text.Encoding.ASCII))
             {
                 //Header!
-
                 var magicNum = reader.ReadChars(6);
                 if (new String(magicNum) != "Org-02")
                 {
@@ -79,20 +84,41 @@ namespace OrgPlay.Organya
                         String.Format("Unrecognized Organya header {0}: The file format isn't supported.", magicNum)
                     );
                 }
-
                 short msecDelay = reader.ReadInt16();
                 byte timeSigNum = reader.ReadByte();
                 byte timeSigDenom = reader.ReadByte();
                 int loopStart = reader.ReadInt32();
                 int loopEnd = reader.ReadInt32();
 
-                for (int i = 0; i < 6; i++)
+                var instrumentList = new List<OrganyaInstrument>();
+                var noteCounts = new int[16];
+                for(int j = 0 ; j < 16; j++)
+                    
                 {
                     //Read track.
                     short fineTune = reader.ReadInt16();
                     byte instrumentIndex = reader.ReadByte();
                     byte isPi = reader.ReadByte();
                     ushort noteCount = reader.ReadUInt16();
+                    instrumentList.Add(new OrganyaInstrument() {
+                        Notes = new List<OrganyaNote>(),
+                        DisableSustain = isPi == 0? false : true,
+                        FineTune = fineTune,
+                        InstrumentIndex = instrumentIndex 
+                    });
+                    noteCounts[j] = noteCount;
+                }
+
+                byte prevVolume = 254;
+                byte prevPan = 6;
+                byte prevPitch = 96; //This one shouldn't be used ever.
+
+                for (int i = 0; i < 16; i++) 
+                {
+
+                    #region Populate Notes...
+                    var notes = new List<OrganyaNote>();
+                    var noteCount = noteCounts[i];
 
                     List<int> notePositions = new List<int>();
                     List<byte> notePitches = new List<byte>();
@@ -107,7 +133,17 @@ namespace OrgPlay.Organya
 
                     for (int j = 0; j < noteCount; j++)
                     {
-                        notePitches.Add(reader.ReadByte());
+                        var pitch = reader.ReadByte();
+                        if (pitch == 255) //255 == no change.
+                        {
+                            pitch = prevPitch;
+                        }
+                        else 
+                        {
+                            prevPitch = pitch;
+                        }
+
+                        notePitches.Add(pitch);
                     }
 
                     for (int j = 0; j < noteCount; j++)
@@ -117,21 +153,55 @@ namespace OrgPlay.Organya
                     
                     for (int j = 0; j < noteCount; j++)
                     {
-                        noteVolumes.Add(reader.ReadByte());
+                        var volume = reader.ReadByte();
+                        if (volume == 255) //255 == no change.
+                        {
+                            volume = prevVolume;
+                        }
+                        else 
+                        {
+                            prevVolume = volume;
+                        }
+
+                        noteVolumes.Add(volume);
                     }
                     
                     for (int j = 0; j < noteCount; j++)
                     {
-                        notePans.Add(reader.ReadByte());
+                        var pan = reader.ReadByte();
+                        if (pan == 255) //255 == no change.
+                        {
+                            pan = prevPan;
+                        }
+                        else 
+                        {
+                            prevPan = pan;
+                        }
+
+                        notePans.Add(pan);
                     }
 
                     for (int j = 0; j < noteCount; j++)
                     {
-                        // TODO: Create a new Note object, add it to the note list for the track.
+                        var pos = notePositions[j];
+                        var pitch = notePitches[j];
+                        var len = noteLengths[j];
+                        var vol = noteVolumes[j];
+                        var pan = notePans[j];
+
+                        notes.Add(new OrganyaNote() {
+                            BeatNumber = pos,
+                            Pitch = pitch,
+                            Length = len,
+                            Volume = vol,
+                            Pan = pan
+                        });
                     }
+                    #endregion
 
+                    instrumentList[i].Notes = notes;
                 }
-
+                return new OrganyaSong(msecDelay, timeSigNum, timeSigDenom, loopStart, loopEnd, instrumentList);
             }
         }
     }
