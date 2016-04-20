@@ -39,9 +39,9 @@ namespace OrgPlay
 
         public static float SamplesToStepsFloat(int samples, int stepTimeMsec, int sampleRate)
         {
-            var seconds = ((float) samples) / ((float) sampleRate);
+            var seconds = ((double) samples) / ((double) sampleRate);
             var msec = seconds * 1000;
-            return msec / stepTimeMsec;
+            return (float) (msec / stepTimeMsec);
         }
 
         public static int SamplesToSteps(int samples, int stepTimeMsec, int sampleRate)

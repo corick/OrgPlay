@@ -18,7 +18,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Externalconsole>true</Externalconsole>
-    <PlatformTarget>x86</PlatformTarget>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <DebugType>full</DebugType>
@@ -40,20 +40,21 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PlayerGame.cs" />
-    <Compile Include="SampleController\ISourceSampleProvider.cs" />
-    <Compile Include="SampleController\SampleControllerComponent.cs" />
     <Compile Include="Organya\OrganyaSong.cs" />
     <Compile Include="Organya\OrganyaNote.cs" />
     <Compile Include="Organya\OrganyaInstrument.cs" />
-    <Compile Include="SampleController\WavetableSample.cs" />
-    <Compile Include="SampleController\WavetableSampleLoader.cs" />
-    <Compile Include="SampleController\OrganyaTrackSampleProvider.cs" />
-    <Compile Include="SampleController\WavetableNoteSampleProvider.cs" />
-    <Compile Include="SampleController\SampleProviderConfiguration.cs" />
     <Compile Include="Utilities.cs" />
-    <Compile Include="SampleController\NoteChannelSampleProvider.cs" />
-    <Compile Include="SampleController\OrganyaPlayerContext.cs" />
-    <Compile Include="SampleController\OrganyaSongPlayer.cs" />
+    <Compile Include="Player\WavetableSample.cs" />
+    <Compile Include="Player\WavetableSampleLoader.cs" />
+    <Compile Include="Player\NoteEventController.cs" />
+    <Compile Include="Player\NoteChannelController.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="Player\OrganyaPlayerContext.cs" />
+    <Compile Include="Player\OrganyaSongPlayer.cs" />
+    <Compile Include="ISourceSampleProvider.cs" />
+    <Compile Include="SampleControllerComponent.cs" />
+    <Compile Include="SampleProviderConfiguration.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -274,10 +275,16 @@
     <None Include="Songs\Zombie.org">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="libopenal.so.1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="libSDL2-2.0.so.0">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="SampleController\" />
     <Folder Include="Organya\" />
     <Folder Include="Samples\" />
+    <Folder Include="Player\" />
   </ItemGroup>
 </Project>

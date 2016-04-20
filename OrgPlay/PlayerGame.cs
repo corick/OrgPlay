@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 
-using OrgPlay.SampleController;
+using OrgPlay.Player;
 
 namespace OrgPlay
 {
@@ -10,10 +10,12 @@ namespace OrgPlay
 		: Microsoft.Xna.Framework.Game
 	{
 		private readonly GraphicsDeviceManager _gfx;
+        private readonly string _songName;
         private SampleControllerComponent synth;
        
-		public PlayerGame()
+        public PlayerGame(string songName)
 		{
+            _songName = songName;
 			_gfx = new GraphicsDeviceManager (this);
 			_gfx.PreferredBackBufferWidth = 800;
 			_gfx.PreferredBackBufferHeight = 600;
@@ -23,8 +25,8 @@ namespace OrgPlay
         {
             var loader = new WavetableSampleLoader();
             //var sampleProvider = new WavetableNoteSampleProvider(loader.Load(102), 40, 254, 0, 9999, 1000, true, false);
-            var song = Organya.OrganyaSong.FromFile("./Songs/Moonsong.org");
-            var config = new SampleProviderConfiguration(44100, TimeSpan.FromMilliseconds(30), AudioChannels.Stereo);
+            var song = Organya.OrganyaSong.FromFile(_songName);
+            var config = new SampleProviderConfiguration(44100, TimeSpan.FromMilliseconds(60), AudioChannels.Stereo);
             var sampleProivder = new OrganyaSongPlayer(config, song, new WavetableSampleLoader());
 
 

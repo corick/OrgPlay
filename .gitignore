@@ -267,3 +267,4 @@ wavetable.dat
 #Or the drum table
 drums.dat
 
+*.so.*

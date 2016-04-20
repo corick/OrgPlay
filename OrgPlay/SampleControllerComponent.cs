@@ -2,7 +2,9 @@
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework;
 
-namespace OrgPlay.SampleController
+using OrgPlay.Player;
+
+namespace OrgPlay
 {
     public class SampleControllerComponent
         : Microsoft.Xna.Framework.GameComponent

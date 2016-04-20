@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OrgPlay.SampleController
+namespace OrgPlay
 {
     public interface ISourceSampleProvider 
     {

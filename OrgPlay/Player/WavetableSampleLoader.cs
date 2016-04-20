@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace OrgPlay.SampleController
+namespace OrgPlay.Player
 {
     public class WavetableSampleLoader
     {
@@ -71,8 +71,10 @@ namespace OrgPlay.SampleController
             {
                 byte hi = sample[i];
                 byte lo = sample[i + 1];
-                sampleShortsConverted.Add((short)(hi << 8 | lo)); //HACK: This assumes we're at 44100hz!
-                sampleShortsConverted.Add((short)(hi << 8 | lo)); //Sampled at a slower rate ... 
+                unchecked {
+                    sampleShortsConverted.Add((short)(hi << 8 | lo)); //HACK: This assumes we're at 44100hz!
+                    sampleShortsConverted.Add((short)(hi << 8 | lo)); //Sampled at a slower rate ... 
+                }
             }
 
             return new WavetableSample(

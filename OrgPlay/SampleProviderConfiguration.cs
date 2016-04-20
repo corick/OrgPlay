@@ -2,7 +2,7 @@
 
 using Microsoft.Xna.Framework.Audio;
 
-namespace OrgPlay.SampleController
+namespace OrgPlay
 {
     public class SampleProviderConfiguration
     {

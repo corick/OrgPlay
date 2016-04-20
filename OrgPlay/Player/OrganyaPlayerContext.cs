@@ -1,7 +1,7 @@
 ﻿using System;
 
 
-namespace OrgPlay.SampleController
+namespace OrgPlay.Player
 {
     public class OrganyaPlayerContext 
     {

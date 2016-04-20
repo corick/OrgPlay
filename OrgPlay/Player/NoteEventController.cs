@@ -1,16 +1,16 @@
 ﻿using System;
 using OrgPlay.Organya;
 
-namespace OrgPlay.SampleController
+namespace OrgPlay.Player
 {
     /// <summary>
     /// Sample provider that plays a discrete note event.
     /// </summary>
-    public class WavetableNoteSampleProvider
+    public class NoteEventController
     {
 
         private readonly static int POINT_FREQ_RELATIVE_TO_SAMPLE_FREQ = 44100;
-        private readonly static int[] NOTE_POINT_FREQS = new int[] { 
+        private readonly static int[] NOTE_POINT_FREQS = new int[] {  //FIXME: Derive these instead.
             33408, //C
             35584, //C#
             37632, //D
@@ -38,7 +38,16 @@ namespace OrgPlay.SampleController
         private float samplePosition;
         private int samplesPlayed;
 
-        public WavetableNoteSampleProvider(OrganyaPlayerContext context, OrganyaNote note, int bankNumber, 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OrgPlay.SampleController.WavetableNoteSampleProvider"/> class.
+        /// </summary>
+        /// <param name="context">Context.</param>
+        /// <param name="note">Note.</param>
+        /// <param name="bankNumber">Bank number.</param>
+        /// <param name="pitchBendNormalized">Pitch bend normalized.</param>
+        /// <param name="drum">If set to <c>true</c> drum.</param>
+        /// <param name="pi">If set to <c>true</c> pi.</param>
+        public NoteEventController(OrganyaPlayerContext context, OrganyaNote note, int bankNumber, 
             int pitchBendNormalized, bool drum, bool pi)
         {
             _sample = context.SampleLoader.Load(bankNumber);
@@ -56,23 +65,32 @@ namespace OrgPlay.SampleController
 
             if(drum)
             {
-                //FIXME: Not sure how drums are affected by pitch.
-                //Length is however long it takes to play thru?
-                //This is the length of the sample.
+                //TODO: Not sure how drums are affected by pitch.
+
+                //_normalizedSampleSpeed = 1.0f; //Do drums play at a constant point frequency? 
                 float stretchFactor = ((float)OCTAVE_REPEAT_TIMES[_octave]) / ((float)OCTAVE_ADVANCE_POINTS[_octave]);
                 _lengthSamples = (int) (((float)_sample.Samples.Length / _normalizedSampleSpeed) * stretchFactor);
             }
             else if(pi)
             {
                 //Is this correct? It should play a constant amount of samples I think.
-                _lengthSamples = _sample.Samples.Length;
+                _lengthSamples = 256;
+                //TODO: Lengths are given as periods in the notes page explanation of the 'pi' option. 
             }
             else
             {
+                //In this case, we know how long this'll have to be in samples.
                 _lengthSamples = Utilities.StepsToSamples(note.Length, context.StepMsec, context.Config.SampleRate);
             }
         }
 
+        //FIXME: This should be stateless. 
+
+        /// <summary>
+        /// Requests an individual sample from the note.
+        /// </summary>
+        /// <param name="left">Return value of the left channel.</param>
+        /// <param name="right">Return value of ther right channel.</param>
         public void RequestSample(out float left, out float right)
         {
             if(this.samplesPlayed > this._lengthSamples)
@@ -88,9 +106,7 @@ namespace OrgPlay.SampleController
             int absoluteSampleIndex = (((int)Math.Floor(samplePosition)) / OCTAVE_REPEAT_TIMES[_octave]) * OCTAVE_ADVANCE_POINTS[_octave];
             int wrappedSampleIndex = absoluteSampleIndex % _sample.Samples.Length;
 
-            //Fill left and right channels.
             Utilities.SplitChannel(_sample.Samples[wrappedSampleIndex], _panNormalized, out left, out right);
-
             left = left * _volumeNormalized;
             right = right * _volumeNormalized;
 
@@ -98,20 +114,13 @@ namespace OrgPlay.SampleController
             samplesPlayed++;
         }
 
-        public float[] RequestBuffer(OrganyaPlayerContext context, long lengthSamples)
+        /// <summary>
+        /// Resets the state of this note provider, so it can be replayed. (Used for looping.)
+        /// </summary>
+        public void Reset()
         {
-            var samp = new float[lengthSamples];
-
-            ///Fill the ReqBuffer with some sweet tunes.
-            for (int i = 0; i < lengthSamples; i += 2)
-            {
-                float l, r;
-                RequestSample(out l, out r);
-                samp[i] = l;
-                samp[i + 1] = r;
-            }
-
-            return samp;
+            //Reset the state so we can replay the note.
+            samplePosition = samplesPlayed = 0;
         }
     }
 }

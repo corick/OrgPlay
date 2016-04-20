@@ -6,7 +6,14 @@ namespace OrgPlay
 	{
 		public static void Main (string[] args)
 		{
-			new PlayerGame ().Run ();
+            var songName = "./Songs/Moonsong.org";
+
+            if(args.Length != 0)
+            {
+                songName = args[0];
+            }
+
+            new PlayerGame(songName).Run ();
 		}
 	}
 }

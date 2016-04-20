@@ -1,7 +1,7 @@
 ﻿using System;
 
 
-namespace OrgPlay.SampleController
+namespace OrgPlay.Player
 {
     /// <summary>
     /// A wavetable sample, which is sampled at a specific point frequency to get the value ...

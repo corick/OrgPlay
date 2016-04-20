@@ -5,12 +5,12 @@ using OrgPlay.Organya;
 using Microsoft.Xna.Framework;
 
 
-namespace OrgPlay.SampleController
+namespace OrgPlay.Player
 {
     public class OrganyaSongPlayer
         : ISourceSampleProvider
     {
-        private readonly List<NoteChannelSampleProvider> _noteChannels;
+        private readonly List<NoteChannelController> _noteChannels;
 
         private readonly OrganyaPlayerContext _context;
 
@@ -18,13 +18,13 @@ namespace OrgPlay.SampleController
             WavetableSampleLoader sampleLoader)
         {
             _context = new OrganyaPlayerContext(config, song, sampleLoader);
-            _noteChannels = new List<NoteChannelSampleProvider>();
+            _noteChannels = new List<NoteChannelController>();
 
             for (int i = 0; i < song.Tracks.Count; i++)
             {
                 var track = song.Tracks[i];
                 bool isDrum = i >= 8;
-                var channel = new NoteChannelSampleProvider(_context, track, isDrum);
+                var channel = new NoteChannelController(_context, track, isDrum);
                 _noteChannels.Add(channel);
             }
         }
