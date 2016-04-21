@@ -50,28 +50,27 @@ namespace OrgPlay.Organya
                 [0x06]  short   Millisecond delay between beats. "Wait" param in OrgMaker.
                 [0x08]  byte    Time signature. The "numerator" of the time signature. Does not affect playback.
                 [0x09]  byte    Time Signature. The "denominator" of the time signature. Does not affect playback.
-                [0x0A]  short?  Loop start. (Beats/Measure) * Measure. The beat that the loop starts on.
-                [0x0C]  short?  Loop end. The beat that the song loops before. (Hard cap at 4080.)
-                [0x0E]  int32   Not Used?
+                [0x0A]  int32   Loop start. (Beats/Measure) * Measure. The beat that the loop starts on.
+                [0x0E]  int32   Loop end. The beat that the song loops before. (Hard cap at 4080.)
 
-                Frequency table: Repeat the following six times.
-                [0x12] Start Addr
+                Instrument table: Repeat the following sixteen times.
+                [0x12] Start of an instrument block. 
+                
                 [+0x00] short   The fine tuning parameter. 100-1900. "Voice" param in OrgMaker.
                 [+0x02] byte    Instrument index. 0-99. This * 256 is the index in the wave lookup table.
                 [+0x03] byte    Whether or not to play this instrument stacatto. Only affects instruments, not drums. This caps the instrument to a predetermined number of samples.
                 [+0x04] ushort  Note Count. The amount of notes which use this instrument.
 
-                Note table. 
-                Each instrument has a note table, placed sequentially one after the other.
+                Note table: Each instrument has a note table, placed sequentially one after the other.
+                These are laid out in blocks by property. All of the starting beats for each note in a given instrument are grouped, 
+                then the note values, then the length, et cetera.
                 [0x72] Start address of note table. Repeat this once for each instrument.
+                
                 int     Beat Number- Beat which note event starts on. Not exactly sure why this is a int32.
-                byte    Note- Represented as notes above c0
-                byte    length  How long this note is held in beats.
-                byte    Volume- 0-255 Volume is not linear with 0 still being about 20%
-                byte    Pan- Pan works in a weird way too.
-                Notes are interleaved by property. 
-                (e.g. for an instrument with four notes the table might look like:
-                bbbbnnnnllllvvvvpppp).
+                byte    Note- Represented as notes above c0. 0xFF signifies the last note's value should be used instead. (No change.)
+                byte    length  How long this note is held in beats. 0xFF = No change
+                byte    Volume- 0-254 Volume is not linear with 0 still being about 20%. 0xFF = No change
+                byte    Pan- Pan doesn't work exactly like / pan. 0xFF = No Change.
              */
 
             using(BinaryReader reader = new BinaryReader(inputStream, System.Text.Encoding.ASCII))
